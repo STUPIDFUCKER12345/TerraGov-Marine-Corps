@@ -139,3 +139,15 @@
   - balance: combat robots may now wear the mimir armour module
   - spellcheck: Unarmed attacks vs xenomorphs should now display correctly
   - spellcheck: mMarine -> Marine
+2025-02-13:
+  Lumipharon:
+  - spellcheck: Grammar fix for the overwatch console
+  - bugfix: Signalling an exploding detpack now simply disarms again instead of completely
+      deactivating
+  - bugfix: fixed bloodthirster charge being stronger than intended
+  - bugfix: Laser sentry no longer has offscreen range
+  Mannybrado:
+  - balance: increases health of standard tad variant windows/cockpit wall to 600(was
+      500) to match other tad variants
+  novaepee:
+  - imageadd: New Lobby Art from Astolfo!
