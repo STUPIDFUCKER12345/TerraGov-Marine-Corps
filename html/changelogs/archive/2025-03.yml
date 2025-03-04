@@ -57,3 +57,6 @@
   - balance: nerfed mech power generation and increased boosting cost
   yyzsong:
   - bugfix: some messages will no longer have an unnecessary space before them.
+2025-03-04:
+  yyzsong:
+  - refactor: splits supplypacks.dm into multiple files
