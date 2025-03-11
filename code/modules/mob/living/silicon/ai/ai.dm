@@ -355,9 +355,6 @@
 		else
 			clear_fullscreen("remote_view", 0)
 
-	// I am so sorry
-	SEND_SIGNAL(src, COMSIG_MOB_RESET_PERSPECTIVE)
-
 /mob/living/silicon/ai/update_sight()
 	if(HAS_TRAIT(src, TRAIT_SEE_IN_DARK))
 		lighting_cutoff = LIGHTING_CUTOFF_HIGH
