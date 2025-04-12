@@ -66,7 +66,7 @@
 
 /obj/item/blink_drive/apply_custom(mutable_appearance/standing, inhands, icon_used, state_used)
 	. = ..()
-	var/mutable_appearance/emissive_overlay = emissive_appearance(icon_used, "[state_used]_emissive")
+	var/mutable_appearance/emissive_overlay = emissive_appearance(icon_used, "[state_used]_emissive", src)
 	standing.overlays.Add(emissive_overlay)
 
 /obj/item/blink_drive/ui_action_click(mob/user, datum/action/item_action/action, target)
@@ -102,7 +102,7 @@
 	var/instability = 0 //certain factors can make the teleport unreliable
 	if(target_distance > BLINK_DRIVE_RANGE - 2)
 		instability ++
-	if(!COOLDOWN_CHECK(src, blink_stability_cooldown))
+	if(!COOLDOWN_FINISHED(src, blink_stability_cooldown))
 		instability ++
 	if(!line_of_sight(user, target_turf, 9))
 		instability ++

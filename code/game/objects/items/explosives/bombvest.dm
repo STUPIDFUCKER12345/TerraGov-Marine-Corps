@@ -9,8 +9,6 @@
 	actions_types = list(/datum/action/item_action/toggle/suit_toggle/boom)
 	///Warcry to yell upon detonation
 	var/bomb_message
-	///List of warcries that are not allowed.
-	var/bad_warcries_regex = "allahu ackbar|allah|ackbar"
 	///Time it takes to detonate
 	var/detonate_time = 2 SECONDS
 
@@ -42,7 +40,7 @@
 	if(istype(activator.l_hand, /obj/item/weapon/shield/riot) || istype(activator.r_hand, /obj/item/weapon/shield/riot) || istype(activator.back, /obj/item/weapon/shield/riot))
 		balloon_alert(user, "Can't, your shield prevents you")
 		return FALSE
-	if(TIMER_COOLDOWN_CHECK(src, COOLDOWN_BOMBVEST_SHIELD_DROP))
+	if(TIMER_COOLDOWN_RUNNING(src, COOLDOWN_BOMBVEST_SHIELD_DROP))
 		balloon_alert(user, "Can't, dropped shield too recently")
 		return FALSE
 	if(LAZYACCESS(user.do_actions, src))
@@ -65,7 +63,7 @@
 		if(istype(appendage, /datum/limb/chest) || istype(appendage, /datum/limb/groin) || istype(appendage, /datum/limb/head))
 			continue
 		appendage.droplimb()
-	explosion(target, 2, 2, 6, 7, 5, 5)
+	explosion(target, 2, 2, 6, 7, 5, 5, explosion_cause=activator)
 	qdel(src)
 
 /obj/item/clothing/suit/storage/marine/boomvest/attack_hand_alternate(mob/living/user)
@@ -114,7 +112,7 @@
 		if(istype(appendage, /datum/limb/chest) || istype(appendage, /datum/limb/groin) || istype(appendage, /datum/limb/head))
 			continue
 		appendage.droplimb()
-	explosion(target, 15, 0, 0, 0, 15, 15)
+	explosion(target, 15, 0, 0, 0, 15, 15, explosion_cause=activator)
 	qdel(src)
 
 /obj/item/clothing/suit/storage/marine/boomvest/fast

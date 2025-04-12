@@ -1,8 +1,3 @@
-GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons/effects/welding_effect.dmi', "welding_sparks", WELDING_TOOL_EFFECT_LAYER, ABOVE_LIGHTING_PLANE))
-GLOBAL_DATUM_INIT(welding_sparks_multitiledoor_vertical, /mutable_appearance, mutable_appearance('icons/effects/welding_effect_multitile_door.dmi', "welding_sparks_vertical", WELDING_TOOL_EFFECT_LAYER, ABOVE_LIGHTING_PLANE))
-GLOBAL_DATUM_INIT(welding_sparks_multitiledoor_horizontal, /mutable_appearance, mutable_appearance('icons/effects/welding_effect_multitile_door.dmi', "welding_sparks_horizontal", WELDING_TOOL_EFFECT_LAYER, ABOVE_LIGHTING_PLANE))
-GLOBAL_DATUM_INIT(welding_sparks_prepdoor, /mutable_appearance, mutable_appearance('icons/effects/welding_effect_multitile_door.dmi', "welding_sparks_marinedoor", WELDING_TOOL_EFFECT_LAYER, ABOVE_LIGHTING_PLANE))
-
 /obj/item
 	name = "item"
 	icon = 'icons/obj/items/items.dmi'
@@ -412,8 +407,12 @@ GLOBAL_DATUM_INIT(welding_sparks_prepdoor, /mutable_appearance, mutable_appearan
 ///Helper function for updating last_equipped_slot when item is drawn from storage
 /obj/item/proc/set_last_equipped_slot_of_storage(datum/storage/storage_datum)
 	var/obj/item/storage_item = storage_datum.parent
+	if(!isitem(storage_item))
+		return
+
 	while(isitem(storage_item.loc)) // for stuff like armor modules we have to find topmost item
 		storage_item = storage_item.loc
+
 	if(storage_item)
 		last_equipped_slot = slot_to_in_storage_slot(storage_item.last_equipped_slot)
 
@@ -428,7 +427,6 @@ GLOBAL_DATUM_INIT(welding_sparks_prepdoor, /mutable_appearance, mutable_appearan
 ///called when this item is added into a storage item, which is passed on as S. The loc variable is already set to the storage item.
 /obj/item/proc/on_enter_storage(obj/item/storage/S as obj)
 	item_flags |= IN_STORAGE
-	return
 
 
 ///called when "found" in pockets and storage items. Returns 1 if the search should end.
@@ -789,7 +787,7 @@ GLOBAL_DATUM_INIT(welding_sparks_prepdoor, /mutable_appearance, mutable_appearan
 	if(!isturf(loc))
 		return
 	var/image/pickup_animation = image(icon = src, loc = loc, layer = layer + 0.1)
-	pickup_animation.plane = GAME_PLANE
+	SET_PLANE_EXPLICIT(pickup_animation, GAME_PLANE, src)
 	pickup_animation.transform.Scale(0.75)
 	pickup_animation.appearance_flags = APPEARANCE_UI_IGNORE_ALPHA
 
@@ -907,7 +905,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 		viewsize = zoom_viewsize
 
 	if(zoom) //If we are zoomed out, reset that parameter.
-		if(!TIMER_COOLDOWN_CHECK(user, COOLDOWN_ZOOM)) //If we are spamming the zoom, cut it out
+		if(TIMER_COOLDOWN_FINISHED(user, COOLDOWN_ZOOM)) //If we are spamming the zoom, cut it out
 			user.visible_message(span_notice("[user] looks up from [zoom_device]."),
 			span_notice("You look up from [zoom_device]."))
 
@@ -947,7 +945,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 		user.client.view_size.add(viewsize)
 		change_zoom_offset(user, zoom_offset = tileoffset)
 
-	if(!TIMER_COOLDOWN_CHECK(user, COOLDOWN_ZOOM))
+	if(TIMER_COOLDOWN_FINISHED(user, COOLDOWN_ZOOM))
 		user.visible_message(span_notice("[user] peers through \the [zoom_device]."),
 		span_notice("You peer through \the [zoom_device]."))
 	zoom = TRUE
@@ -1154,7 +1152,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 
 // Called when a mob tries to use the item as a tool.
 // Handles most checks.
-/obj/item/proc/use_tool(atom/target, mob/living/user, delay, amount = 0, volume = 0, datum/callback/extra_checks)
+/obj/item/proc/use_tool(atom/target, mob/living/user, delay, amount = 0, volume = 0, datum/callback/extra_checks, user_display=PROGRESS_GENERIC)
 	// No delay means there is no start message, and no reason to call tool_start_check before use_tool.
 	// Run the start check here so we wouldn't have to call it manually.
 	if(!delay && !tool_start_check(user, amount))
@@ -1169,11 +1167,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 		// Create a callback with checks that would be called every tick by do_after.
 		var/datum/callback/tool_check = CALLBACK(src, PROC_REF(tool_check_callback), user, amount, extra_checks)
 
-		if(ismob(target))
-			if(do_after(user, delay, NONE, target, extra_checks = tool_check))
-				return
-
-		else if(!do_after(user, delay, target = target, extra_checks = tool_check))
+		if(!do_after(user, delay, target = target, extra_checks = tool_check, user_display=user_display))
 			return
 
 	else if(extra_checks && !extra_checks.Invoke()) // Invoke the extra checks once, just in case.
@@ -1323,7 +1317,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 /obj/item/proc/apply_custom(mutable_appearance/standing, inhands, icon_used, state_used)
 	SHOULD_CALL_PARENT(TRUE)
 	if(blocks_emissive != EMISSIVE_BLOCK_NONE)
-		standing.overlays += emissive_blocker(icon_used, state_used, alpha = standing.alpha)
+		standing.overlays += emissive_blocker(icon_used, state_used, src, alpha = standing.alpha)
 	SEND_SIGNAL(src, COMSIG_ITEM_APPLY_CUSTOM_OVERLAY, standing, inhands, icon_used, state_used)
 	return standing
 
@@ -1339,7 +1333,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 
 ///Checks to see if you successfully perform a trick, and what kind
 /obj/item/proc/do_trick(mob/living/carbon/human/user)
-	if(TIMER_COOLDOWN_CHECK(user, COOLDOWN_ITEM_TRICK))
+	if(TIMER_COOLDOWN_RUNNING(user, COOLDOWN_ITEM_TRICK))
 		return FALSE
 	if(!istype(user))
 		return FALSE
@@ -1552,3 +1546,6 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	user.balloon_alert(user, "Refilled") //If all checks passed, it's safe to throw the balloon alert
 	return TRUE
 
+/// Returns the strip delay of the item.
+/obj/item/proc/getstripdelay()
+	return strip_delay

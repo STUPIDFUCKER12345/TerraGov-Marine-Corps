@@ -22,9 +22,6 @@
 ///Ai component state where the ai tries to flee to heal
 #define MOVING_TO_SAFETY "moving_to_safety"
 
-///AI component state where we're healing
-#define MOB_HEALING "mob_healing"
-
 ///Ai component state where the ai just does nothing
 #define IDLE "idle"
 
@@ -59,8 +56,18 @@
 #define MAX_NODE_RANGE 15
 #define PATHFINDER_MAX_TRIES 200
 
+///The AI will maintain a combat target within this range, even without LOS
+#define AI_COMBAT_TARGET_BLIND_DISTANCE 4 //required since byond LOS is not the same as true LOS, but also since either can be easily broken by stepping behind a corner etc
+
 //AI will escort an ATOM up to this distance away from them
 #define AI_ESCORTING_MAX_DISTANCE 10
+///AI will give up escorting something beyond this distance
+#define AI_ESCORTING_BREAK_DISTANCE 20
+
+#define AI_ESCORT_RATING_FACTION_GOAL 10
+#define AI_ESCORT_RATING_SQUAD_LEAD 13
+#define AI_ESCORT_RATING_CLOSE_FRIENDLY 15
+#define AI_ESCORT_RATING_BUDDY 16
 
 GLOBAL_LIST_EMPTY(all_nodes)
 
@@ -71,6 +78,13 @@ GLOBAL_LIST_EMPTY(ai_instances_active)
 GLOBAL_LIST_EMPTY(nodes_with_enemies)
 GLOBAL_LIST_EMPTY(nodes_with_construction)
 #define can_cross_lava_turf(turf_to_check) (!islava(turf_to_check) || locate(/obj/structure/catwalk) in turf_to_check) //todo: this needs work
+
+///Obstacle needs attacking
+#define AI_OBSTACLE_ATTACK "ai_obstacle_attack"
+///Obstacle can be jumped
+#define AI_OBSTACLE_JUMP "ai_obstacle_jump"
+///Obstacle has already been handled
+#define AI_OBSTACLE_RESOLVED "ai_obstacle_resolved"
 
 ///If the mob parent can heal itself and so should flee
 #define HUMAN_AI_SELF_HEAL (1<<0)
@@ -87,6 +101,12 @@ GLOBAL_LIST_EMPTY(nodes_with_construction)
 #define HUMAN_AI_FIRING (1<<0)
 ///Looking for weapons
 #define HUMAN_AI_NEED_WEAPONS (1<<1)
+///Healing or being healed
+#define HUMAN_AI_HEALING (1<<2)
+///Healing self
+#define HUMAN_AI_SELF_HEALING (1<<3)
+
+#define HUMAN_AI_ANY_HEALING (HUMAN_AI_HEALING|HUMAN_AI_SELF_HEALING)
 
 ///We're good to shoot
 #define AI_FIRE_CAN_HIT (1<<0)
@@ -102,6 +122,16 @@ GLOBAL_LIST_EMPTY(nodes_with_construction)
 #define AI_FIRE_FRIENDLY_BLOCKED (1<<5)
 ///Target already dead
 #define AI_FIRE_TARGET_DEAD (1<<6)
+
+//Mob medic level
+///Don't help anyone else
+#define AI_MED_SELFISH 0
+///Tries to inap crit friends
+#define AI_MED_STANDARD 1
+///Tries to heal whenver possible
+#define AI_MED_MEDIC 2
+///Prioritises healing above combat
+#define AI_MED_DOCTOR 3
 
 GLOBAL_LIST_INIT(ai_brute_heal_items, list(
 	/obj/item/reagent_containers/pill/bicaridine,
@@ -180,6 +210,39 @@ GLOBAL_LIST_INIT(ai_pain_heal_items, list(
 	/obj/item/reagent_containers/hypospray/autoinjector/neuraline,
 	/obj/item/reagent_containers/hypospray/autoinjector/russian_red,
 	/obj/item/reagent_containers/hypospray/autoinjector/elite,
+))
+
+GLOBAL_LIST_INIT(ai_eye_heal_items, list(
+	/obj/item/reagent_containers/hypospray/advanced/imialky,
+	/obj/item/reagent_containers/pill/imidazoline,
+	/obj/item/reagent_containers/hypospray/autoinjector/imidazoline,
+))
+
+GLOBAL_LIST_INIT(ai_brain_heal_items, list(
+	/obj/item/reagent_containers/hypospray/advanced/imialky,
+	/obj/item/reagent_containers/pill/alkysine,
+	/obj/item/reagent_containers/hypospray/autoinjector/alkysine,
+))
+
+GLOBAL_LIST_INIT(ai_ib_heal_items, list(
+	/obj/item/reagent_containers/hypospray/autoinjector/quickclotplus,
+	/obj/item/reagent_containers/hypospray/advanced/quickclotplus,
+	/obj/item/reagent_containers/hypospray/advanced/quickclotplus_medkit,
+	/obj/item/reagent_containers/hypospray/advanced/big/quickclot,
+	/obj/item/reagent_containers/hypospray/autoinjector/quickclot,
+	/obj/item/reagent_containers/pill/quickclot,
+))
+
+GLOBAL_LIST_INIT(ai_organ_heal_items, list(
+	/obj/item/reagent_containers/hypospray/autoinjector/peridaxon_plus,
+	/obj/item/reagent_containers/hypospray/advanced/peridaxonplus,
+	/obj/item/reagent_containers/hypospray/advanced/peridaxonplus_medkit,
+))
+
+GLOBAL_LIST_INIT(ai_infection_heal_items, list(
+	/obj/item/reagent_containers/hypospray/advanced/big/spaceacillin,
+	/obj/item/reagent_containers/hypospray/autoinjector/spaceacillin,
+	/obj/item/reagent_containers/pill/spaceacillin,
 ))
 
 ///List of squads that can be spawned, and the roles in them, sorted in spawn order

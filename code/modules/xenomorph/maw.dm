@@ -112,6 +112,7 @@
 	name = "ball of huggers"
 	radial_icon_state = "hugger_ball"
 	cooldown_time = 10 MINUTES
+	impact_time = 12 SECONDS
 	/// range_turfs that huggers will be dropped around the target
 	var/drop_range = 10
 	/// how many huggers get dropped at once, does not stack on turfs if theres not enough turfs
@@ -167,6 +168,7 @@
 	name = "ball of minions"
 	radial_icon_state = "minion"
 	cooldown_time = 5 MINUTES
+	impact_time = 12 SECONDS
 	/// range_turfs that minions will be dropped around the target
 	var/drop_range = 7
 	/// how many minions get dropped at once, does not stack on turfs if theres not enough turfs
@@ -287,7 +289,7 @@
 
 /obj/structure/xeno/acid_maw/Initialize(mapload, _hivenumber)
 	. = ..()
-	SSminimaps.add_marker(src, MINIMAP_FLAG_XENO, image('icons/UI_icons/map_blips.dmi', null, minimap_icon, ABOVE_FLOAT_LAYER))
+	SSminimaps.add_marker(src, MINIMAP_FLAG_XENO, image('icons/UI_icons/map_blips.dmi', null, minimap_icon, MINIMAP_LABELS_LAYER))
 	var/list/parsed_maw_options = list()
 	for(var/datum/maw_ammo/path AS in maw_options)
 		parsed_maw_options[path] = image(icon='icons/mob/radial.dmi', icon_state=path::radial_icon_state)
@@ -312,7 +314,7 @@
 		if(!slient)
 			balloon_alert(xeno_shooter, "must be leader")
 		return FALSE
-	if(TIMER_COOLDOWN_CHECK(src, COOLDOWN_MAW_GLOB)) // repeat this every time after we have a sleep for quick feedback
+	if(TIMER_COOLDOWN_RUNNING(src, COOLDOWN_MAW_GLOB)) // repeat this every time after we have a sleep for quick feedback
 		var/timeleft = S_TIMER_COOLDOWN_TIMELEFT(src, COOLDOWN_MAW_GLOB)
 		if(!slient)
 			balloon_alert(xeno_shooter, "cooldown: [timeleft/10] seconds")
@@ -322,7 +324,7 @@
 	if(!selected_type)
 		return FALSE
 
-	if(TIMER_COOLDOWN_CHECK(src, COOLDOWN_MAW_GLOB))
+	if(TIMER_COOLDOWN_RUNNING(src, COOLDOWN_MAW_GLOB))
 		var/timeleft = S_TIMER_COOLDOWN_TIMELEFT(src, COOLDOWN_MAW_GLOB)
 		if(!slient)
 			balloon_alert(xeno_shooter, "cooldown: [timeleft/10] seconds")
@@ -338,7 +340,7 @@
 		if(!slient)
 			balloon_alert(xeno_shooter, "moved too far away")
 		return FALSE
-	if(TIMER_COOLDOWN_CHECK(src, COOLDOWN_MAW_GLOB))
+	if(TIMER_COOLDOWN_RUNNING(src, COOLDOWN_MAW_GLOB))
 		var/timeleft = S_TIMER_COOLDOWN_TIMELEFT(src, COOLDOWN_MAW_GLOB)
 		if(!slient)
 			balloon_alert(xeno_shooter, "cooldown: [timeleft/10] seconds")

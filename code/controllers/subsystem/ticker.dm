@@ -121,12 +121,12 @@ SUBSYSTEM_DEF(ticker)
 				GLOB.ooc_allowed = TRUE
 				GLOB.dooc_allowed = TRUE
 				mode.declare_completion(force_ending)
+				world.TgsTriggerEvent("tg-Roundend", wait_for_completion = TRUE)
 				addtimer(CALLBACK(SSvote, TYPE_PROC_REF(/datum/controller/subsystem/vote, automatic_vote)), 2 SECONDS)
 				addtimer(CALLBACK(src, PROC_REF(Reboot)), CONFIG_GET(number/vote_period) * 3 + 9 SECONDS)
 				Master.SetRunLevel(RUNLEVEL_POSTGAME)
 				for(var/client/C AS in GLOB.clients)
 					C.mob?.update_sight() // To reveal ghosts
-				world.TgsTriggerEvent("tg-Roundend", wait_for_completion = TRUE)
 
 
 /datum/controller/subsystem/ticker/proc/setup()
@@ -220,7 +220,7 @@ SUBSYSTEM_DEF(ticker)
 		var/turf/epi = bomb.loc
 		qdel(bomb)
 		if(epi)
-			explosion(epi, 0, 256, 512, 0, silent = TRUE)
+			explosion(epi, 0, 256, 512, 0, silent = TRUE, explosion_cause="station_explosion_detonation")
 
 /datum/controller/subsystem/ticker/proc/HasRoundStarted()
 	return current_state >= GAME_STATE_PLAYING
