@@ -114996,7 +114996,6 @@
 /obj/structure/window/reinforced/tinted{
 	dir = 8
 	},
-/obj/structure/nuke_disk_candidate,
 /turf/open/floor/urban/metal/bluemetalfull,
 /area/lv759/indoors/spaceport/flight_control_room)
 "uyp" = (
@@ -120086,14 +120085,7 @@
 /turf/open/floor/officetiles,
 /area/lv759/indoors/nt_research_complex/xenobiology)
 "vre" = (
-/obj/structure/filingcabinet/nondense{
-	pixel_x = -8;
-	pixel_y = 20
-	},
-/obj/structure/filingcabinet/nondense{
-	pixel_x = 8;
-	pixel_y = 20
-	},
+/obj/structure/nuke_disk_candidate,
 /turf/open/floor/urban/wood/blackwood,
 /area/lv759/indoors/nt_office/vip)
 "vrg" = (
